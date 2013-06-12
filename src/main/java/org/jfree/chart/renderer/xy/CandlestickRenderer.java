@@ -180,6 +180,23 @@ public class CandlestickRenderer extends AbstractXYItemRenderer
      */
     private transient Paint downPaint;
 
+    /**
+     * The paint used to draw the border of the candle when the price moved up from open to
+     * close.
+     */
+    private transient Paint upBorderPaint;
+
+    /**
+     * The paint used to draw the border of the candle when the price moved down from open
+     * to close.
+     */
+    private transient Paint downBorderPaint;
+    
+    /**
+     * The paint used to draw the candle's shadows.
+     */
+    private transient Paint shadowPaint;
+    
     /** A flag controlling whether or not volume bars are drawn on the chart. */
     private boolean drawVolume;
 
@@ -412,6 +429,82 @@ public class CandlestickRenderer extends AbstractXYItemRenderer
             this.autoWidthGap = autoWidthGap;
             fireChangeEvent();
         }
+    }
+
+    /**
+     * Returns the paint used to draw the candle's shadows.
+     *
+     * @return The paint (possibly <code>null</code>).
+     *
+     * @see #setShadowPaint(Paint)
+     */
+    public Paint getShadowPaint() {
+        return this.shadowPaint;
+    }
+
+    /**
+     * Sets the paint used to draw the candle's shadows and sends a {@link RendererChangeEvent} to all registered
+     * listeners.
+     *
+     * @param paint  the paint (<code>null</code> permitted).
+     *
+     * @see #getShadowPaint()
+     */
+    public void setShadowPaint(Paint paint) {
+        this.shadowPaint = paint;
+        fireChangeEvent();
+    }
+
+    /**
+     * Returns the paint used to draw the border of the candles when the price moves up from open
+     * to close.
+     *
+     * @return The paint (possibly <code>null</code>).
+     *
+     * @see #setUpBorderPaint(Paint)
+     */
+    public Paint getUpBorderPaint() {
+        return this.upBorderPaint;
+    }
+
+    /**
+     * Sets the paint used to draw the border of the candles when the price moves up from open
+     * to close and sends a {@link RendererChangeEvent} to all registered
+     * listeners.
+     *
+     * @param paint  the paint (<code>null</code> permitted).
+     *
+     * @see #getUpBorderPaint()
+     */
+    public void setUpBorderPaint(Paint paint) {
+        this.upBorderPaint = paint;
+        fireChangeEvent();
+    }
+
+    /**
+     * Returns the paint used to draw the border of the candles when the price moves up from open
+     * to close.
+     *
+     * @return The paint (possibly <code>null</code>).
+     *
+     * @see #setDownBorderPaint(Paint)
+     */
+    public Paint getDownBorderPaint() {
+        return this.downBorderPaint;
+    }
+
+    /**
+     * Sets the paint used to draw the border of the candles when the price moves up from open
+     * to close and sends a {@link RendererChangeEvent} to all registered
+     * listeners.
+     *
+     * @param paint  the paint (<code>null</code> permitted).
+     *
+     * @see #getDownBorderPaint()
+     */
+    public void setDownBorderPaint(Paint paint) {
+        this.downBorderPaint = paint;
+        fireChangeEvent();
     }
 
     /**
@@ -660,23 +753,9 @@ public class CandlestickRenderer extends AbstractXYItemRenderer
                          CrosshairState crosshairState,
                          int pass) {
 
-        boolean horiz;
         PlotOrientation orientation = plot.getOrientation();
-        if (orientation == PlotOrientation.HORIZONTAL) {
-            horiz = true;
-        }
-        else if (orientation == PlotOrientation.VERTICAL) {
-            horiz = false;
-        }
-        else {
-            return;
-        }
-
-        // setup for collecting optional entity info...
-        EntityCollection entities = null;
-        if (info != null) {
-            entities = info.getOwner().getEntityCollection();
-        }
+        if (orientation == null) return;
+        boolean horiz = (orientation == PlotOrientation.HORIZONTAL);
 
         OHLCDataset highLowData = (OHLCDataset) dataset;
 
@@ -756,10 +835,7 @@ public class CandlestickRenderer extends AbstractXYItemRenderer
         }
 
         Paint p = getItemPaint(series, item);
-        Paint outlinePaint = null;
-        if (this.useOutlinePaint) {
-            outlinePaint = getItemOutlinePaint(series, item);
-        }
+        Paint outlinePaint = this.useOutlinePaint ? getItemOutlinePaint(series, item) : p;
         Stroke s = getItemStroke(series, item);
 
         g2.setStroke(s);
@@ -797,12 +873,7 @@ public class CandlestickRenderer extends AbstractXYItemRenderer
             g2.setComposite(originalComposite);
         }
 
-        if (this.useOutlinePaint) {
-            g2.setPaint(outlinePaint);
-        }
-        else {
-            g2.setPaint(p);
-        }
+        g2.setPaint(shadowPaint == null ? outlinePaint : shadowPaint);
 
         double yyMaxOpenClose = Math.max(yyOpen, yyClose);
         double yyMinOpenClose = Math.min(yyOpen, yyClose);
@@ -854,6 +925,8 @@ public class CandlestickRenderer extends AbstractXYItemRenderer
                 g2.setPaint(p);
             }
             g2.fill(body);
+            g2.setPaint(this.upBorderPaint == null ? outlinePaint: this.upBorderPaint);
+            g2.draw(body);
         }
         else {
             if (this.downPaint != null) {
@@ -863,20 +936,15 @@ public class CandlestickRenderer extends AbstractXYItemRenderer
                 g2.setPaint(p);
             }
             g2.fill(body);
+            g2.setPaint(this.downBorderPaint == null ? outlinePaint: this.downBorderPaint);
+            g2.draw(body);
         }
-        if (this.useOutlinePaint) {
-            g2.setPaint(outlinePaint);
-        }
-        else {
-            g2.setPaint(p);
-        }
-        g2.draw(body);
 
         // add an entity for the item...
-        if (entities != null) {
+        if (info != null) {
+            EntityCollection entities = info.getOwner().getEntityCollection();
             addEntity(entities, hotspot, dataset, series, item, 0.0, 0.0);
         }
-
     }
 
     /**
