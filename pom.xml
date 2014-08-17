@@ -5,7 +5,7 @@
   <groupId>org.jfree.chart</groupId>
   <artifactId>jfreechart-fse</artifactId>
   <packaging>jar</packaging>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.1-SNAPSHOT</version>
   <name>jfreechart-fse</name>
   <url>http://www.jfree.org/jfreechart/index.html</url>
 
@@ -62,12 +62,6 @@
       <artifactId>junit</artifactId>
       <version>4.10</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>servlet-api</artifactId>
-      <version>2.5</version>
-      <scope>provided</scope>
     </dependency>
   </dependencies>
 
